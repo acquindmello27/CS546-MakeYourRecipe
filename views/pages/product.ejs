@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <% include ../partials/head %>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h2>Header section</h2>
+        </header>
+        <main>
+            <!-- Let's start writing content! -->  
+            <section class ="titleSection">
+                 <h1 class "h1"><%=resultData.name%></h1>  
+                 <p><%=resultData.description%></p>
+                 <p>--------------------------------------------------------------------------------------------------------------------------------------</p>
+            </section>
+            <section class="bodySection">
+                <div class="row">
+                    <div class="col-xs-12 col-md-5">
+                        <img src="http://localhost:3000/assets/images/<%=resultData.image_url%>" alt="Salmon-burger" width="450px" height="250px"/>
+                    </div>
+                    <div class="col-xs-6 col-md-4">
+                        <p>Prep Time:<%=resultData.prep_time%> min<br>
+                        Cook Time:<%=resultData.cook_time%> min<br>
+                        Number of Servings:<%=resultData.servings%><br>
+                        Cuisine : <%=resultData.cuisine%></p>
+                    </div>
+                </div>
+                <div class ="row">
+                    <div class ="col-xs-12 col-md-2">
+                         <h3>Ingredients</h3>
+                            <% resultData.ingredients.forEach(function(r){ %>
+                                <label><!-- <button type="button" class ="transparent_button glyphicon glyphicon-plus text-danger" onClick=""> </button> -->
+                                <%=r.min_q%> <%= r.name %></label>
+                                <% }); %> 
+
+                            <button type="button" class="btn btn-primary" onclick="buyIngredients()">Buy Ingredients</button>
+                            <%var buyIngredients = function(){
+                                alert("Hi");
+                            }%>
+                    </div>
+                    <div class="col-xs-6 col-md-4">
+                        <h3>Procedure</h3>
+                        <p><%=resultData.procedure%></p>
+                    </div>
+                </div>
+            </section>      
+        </main>
+    </div>
+
+    <% include ../partials/scripts %>
+</body>
+
+</html>

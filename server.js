@@ -36,14 +36,23 @@ app.get("/", function (request, response) {
 
 app.post("/search",function (request, response){
 	var keyword = request.body.keyword;
-	recipeData.searchDB(keyword).then(function(result) {
-       
+	recipeData.searchDB(keyword).then(function(result) {  
         for(var i=0; i<result.length; i++)
         {
             result[i] = recipeData.totalPrice(result[i]);
         }
         response.render("pages/search_results",{resultData : result, keyword : keyword})
     });
+});
+
+
+app.get("/products/:id", function(request,response){
+	console.log(request.params.id);
+	recipeData.getRecipe(request.params.id).then(function(recipe){
+		response.render("pages/product",{resultData: recipe});
+	},function(errorMessage) {
+        response.status(500).json({ error: errorMessage });
+	});
 });
 
 // We can now navigate to localhost:3000
