@@ -5,8 +5,8 @@ var cartData = require('./data_cart.js');
 var recipeData = require('./data_recipe.js');
 var usersData = require('./data_users.js');
 var cookieParser = require('cookie-parser');
-Guid = require('Guid');
-
+var Guid = require('Guid');
+var _xss = require('xss');
 // This package exports the function to create an express instance:
 var app = express();
 
@@ -119,7 +119,7 @@ app.get("/login",function (request, response){
 
 // Create a user
 app.post("/createUser", function(request, response) {
-    usersData.createUser(request.body.register_email, request.body.register_passwd).then(function(user) {
+    usersData.createUser(_xss(request.body.register_email),_xss(request.body.register_passwd)).then(function(user) {
         console.log(user);
 		
         if(user != "User already exists") {
@@ -127,7 +127,7 @@ app.post("/createUser", function(request, response) {
             expiresAt.setHours(expiresAt.getHours() + 1);
             response.cookie('currentSessionId', user.currentSessionId, { expires: expiresAt });
 			
-			if(request.body.register_email == 'admin@makemyrecipe.com'){
+			if(_xss(request.body.register_email) == 'admin@makemyrecipe.com'){
 				response.cookie('isAdmin', 'true', { expires: expiresAt });
 			}
             response.redirect("/");
@@ -144,8 +144,8 @@ app.post("/createUser", function(request, response) {
 // Login
 app.post("/login", function(request, response) {
     var uname,pwd;
-    uname = request.body.login_email;
-    pwd = request.body.login_passwd;
+    uname = _xss(request.body.login_email);
+    pwd = _xss(request.body.login_passwd);
     if(uname && pwd){
     usersData.validateUser(uname, pwd).then(function(newSessionId) {
         var expiresAt = new Date();
@@ -163,19 +163,32 @@ app.post("/login", function(request, response) {
 
 
 app.get("/product/category/:category",function (request, response){
-    var category = request.params.category;
+    var category = _xss(request.params.category);
 
     if(request.cookies.currentSessionId){
         usersData.getUserBySessionId(request.cookies.currentSessionId).then(function (user) {
             cartData.getCart(user[0].cartId).then(function (cart) {
-                var category = request.params.category;
+                var category = _xss(request.params.category);
 				if(category == 'Favorites'){
 					usersData.getUserFavorites(user[0]._id).then(function(fave){
-						console.log("favrecipe::"+fave);
-                        response.render("pages/product_category", {resultData : fave, loginFlag: request.cookies.currentSessionId, adminFlag: request.cookies.isAdmin, pageTitle: "Categories", cartCount: cart.recipes.length});
+                         if (fave.length == 0) {
+                             response.render("pages/product_category", {resultData : [], loginFlag: request.cookies.currentSessionId, adminFlag: request.cookies.isAdmin, pageTitle: "Categories", cartCount: cart.recipes.length});
+                         } else {
+                             var favorites = [];
+                             for (var f = 0; f < fave.length; f++) {
+                                 (function(f) {
+                                     recipeData.getRecipe(fave[f]).then(function(rec) {
+                                         favorites.push(rec);
+                                         if (f == fave.length-1) {
+                                             response.render("pages/product_category", {resultData : favorites, loginFlag: request.cookies.currentSessionId, adminFlag: request.cookies.isAdmin, pageTitle: "Categories", cartCount: cart.recipes.length});
+                                         }
+                                    });
+                                 })(f);
+                             }
+                        }
 					});
 						
-                       }else {
+                } else {
                     recipeData.getCategory(category).then(function(result){
                         for(var i=0; i<result.length; i++)
                         {
@@ -194,7 +207,7 @@ app.get("/product/category/:category",function (request, response){
     }
     else
     {
-        var category = request.params.category;
+        var category = _xss(request.params.category);
             recipeData.getCategory(category).then(function(result){
                 for(var i=0; i<result.length; i++)
                     {
@@ -214,17 +227,17 @@ app.get("/add-product",function (request, response){
 });
 
 app.post("/add-product",function (request, response){
-    var recipe_name = request.body.recipe_name;
-    var description = request.body.description;
-    var image_url = request.body.image_url;
-    var prep_time = request.body.prep_time;
-    var cook_time = request.body.cook_time;
-    var servings = request.body.servings;
-    var cuisine = request.body.cuisine;
-    var procedure = request.body.procedure;
-    var ing_arr = request.body.i_name;
-    var min_q = request.body.min_q;
-    var price = request.body.price;
+    var recipe_name = _xss(request.body.recipe_name);
+    var description = _xss(request.body.description);
+    var image_url = _xss(request.body.image_url);
+    var prep_time = _xss(request.body.prep_time);
+    var cook_time = _xss(request.body.cook_time);
+    var servings = _xss(request.body.servings);
+    var cuisine = _xss(request.body.cuisine);
+    var procedure = _xss(request.body.procedure);
+    var ing_arr = _xss(request.body.i_name);
+    var min_q = _xss(request.body.min_q);
+    var price = _xss(request.body.price);
    
     var ingredientArray = [];
     for(var i=0; i<ing_arr.length; i++)
@@ -254,7 +267,7 @@ app.post("/search",function (request, response){
     if(request.cookies.currentSessionId){
         usersData.getUserBySessionId(request.cookies.currentSessionId).then(function (user) {
             cartData.getCart(user[0].cartId).then(function (cart) {
-                var keyword = request.body.keyword;
+                var keyword = _xss(request.body.keyword);
                 recipeData.searchDB(keyword).then(function(result) {
                     for(var i=0; i<result.length; i++)
                     {
@@ -271,7 +284,7 @@ app.post("/search",function (request, response){
     }
     else
     {
-        var keyword = request.body.keyword;
+        var keyword = _xss(request.body.keyword);
         recipeData.searchDB(keyword).then(function(result) {
             for(var i=0; i<result.length; i++)
             {
@@ -401,19 +414,188 @@ app.post("/remove/favorite", function(request, response) {
 app.post("/order",function(request,response){
     usersData.getUserBySessionId(request.cookies.currentSessionId).then(function(user){
           console.log("REached");
-        usersData.updateUser(request.cookies.currentSessionId, request.body.first_name, request.body.last_name, request.body.country, request.body.address, request.body.city, request.body.state, 
-            request.body.zip_code,request.body.phone_number,request.body.car_number).then(function(result){
-                if(result==true)
+        usersData.updateUser(request.cookies.currentSessionId, _xss(request.body.first_name), _xss(request.body.last_name),
+        _xss( request.body.country), _xss(request.body.address), _xss(request.body.city), _xss(request.body.state), 
+            _xss(request.body.zip_code),_xss(request.body.phone_number),_xss(request.body.car_number)).then(function(result){
+                if(result==true){
                     console.log("User profile updated");
+                    placeorder(request,response);
+                }
+
             }).catch(function(error){
                 console.log(error);
             });
-            placeorder();
+            
 
     }).catch(function(errorMessage){
         response.redirect("/login");
     });
 });
+
+// ------------------------------ Dhanashree --------------------------------------- START
+function getTotalCost(recipe) {
+    
+    if(recipe != null && recipe != undefined){
+        var total_cost = 0;
+        recipe.ingredients.forEach(function(ingredient) {
+            total_cost += ingredient.price;
+        }, this);
+        return total_cost;
+    }else{
+        return 0;
+    }
+        
+};
+
+function getRecipeids(cart) {
+    var recipeids = [];
+    cart.recipes.forEach(function(recipe_info) {
+        console.log('processing recipe data by larsen : ' + JSON.stringify(recipe_info));
+        for(var key in recipe_info){        
+            if(key == 'recipeId'){
+                recipeids[recipeids.length] = recipe_info[key];
+                break;
+            }
+        }
+    }, this);
+    
+    /*cart.recipes.forEach(function(element) {
+        recipeids[recipeids.length] = element.recipeId;
+    }, this);*/
+    
+    return recipeids;
+}
+
+function getRecipeId(recipe_info) {
+    var recipeid = null;
+    for(var key in recipe_info){
+        if(key == 'recipeId'){
+            recipeid = recipe_info[key];
+            break;
+        }
+    }
+    return recipeid;
+};
+
+function getIngredientListing(recipe_info) {
+    var data_dict = {};
+    for(var key in recipe_info){
+        if(key != 'recipeId'){
+            data_dict[key] = recipe_info[key];
+        }
+    }
+    return data_dict;
+};
+
+function getRecipe(recipeid, recipe_col) {
+    var _recipe = null;
+    recipe_col.forEach(function(recipe) {
+        if(recipe._id == recipeid)
+            _recipe = recipe;
+    }, this);
+    return _recipe;    
+};
+function getIngrdientPrice(ingredientid, recipe) {
+    var price = 0;
+    recipe.ingredients.forEach(function(ingredient) {
+        if(ingredient._id == ingredientid){
+            price =  ingredient.price;           
+        }
+    }, this);
+    return price;
+}
+
+function getRecipePrice(listing , recipe_col) {
+    //console.log(' **** listing ' + JSON.stringify(listing));
+    var current_recipeid = getRecipeId(listing);
+    //console.log(' **** current recipe id : ' + current_recipeid);
+    var current_ingredient_infos = getIngredientListing(listing);
+    //console.log(' **** List of ingredients : ' + JSON.stringify(current_ingredient_infos));
+    var current_recipe = getRecipe(current_recipeid, recipe_col);
+    //console.log(' **** current recipe being processed : ' + JSON.stringify(current_recipe));
+    var price = 0;
+    for(var key in current_ingredient_infos){
+        
+        var ingredient_id = key;
+        //console.log(' **** ingredient ID : ' + key);
+        var quantity = current_ingredient_infos[ingredient_id];
+        //console.log(' **** Quantity of ingredients : ' + quantity);
+        var ingredient_price = getIngrdientPrice(ingredient_id,current_recipe);
+        //console.log(' **** Price of ingredient : ' + ingredient_price);
+        price += (quantity * ingredient_price);
+    }
+    //console.log('Complete prize for recipe : ' + price);
+    return price;
+}
+function getRecipeById(recipeid, recipecol) {
+    var recipe = null;
+    recipecol.forEach(function(_recipe) {
+        if(_recipe._id == recipeid){
+            recipe = _recipe;
+        }
+    }, this);
+    return recipe;
+}
+
+
+function placeorder(request, response) {
+    //console.log(' ***** In route /api/placeorder');
+    if(request.cookies.currentSessionId){
+        usersData.getUserBySessionId(request.cookies.currentSessionId).then(function (user) {
+            var cart_id = user[0].cartId;
+            console.log('User Name ' + user[0].username);
+                cartData.getCart(cart_id).then(function (cart_item) {
+                //console.log(' ***** cart to be processed : ' +JSON.stringify(cart_item));
+                var _recipes = getRecipeids(cart_item);
+                //console.log(' ***** Recipe Id : ' + _recipes);    
+                recipeData.getRecipes_byIds(_recipes).then(function (recipe_col) {
+                    //console.log(' ***** Recipe Collection : ' + JSON.stringify(recipe_col));
+                    var _products = [];
+                    var totalprice = 0;
+                    cart_item.recipes.forEach(function(recipe_info) {
+                        
+                        var recipe_price = getRecipePrice(recipe_info , recipe_col);
+                        totalprice +=recipe_price;
+                        var current_recipeid = getRecipeId(recipe_info);
+                        var current_recipe = getRecipe(current_recipeid, recipe_col);
+                        var recipename = current_recipe.name;
+                        _products[_products.length] = { productname : recipename , productprice : recipe_price };
+                    }, this);
+                    
+                    
+                    recipeData.createbill_updatecart(cart_id, user[0]._id).then(function (_orderid) {
+                        var order_detail = {
+                            firstname : user[0].profile.firstName == undefined ? '' : user[0].profile.firstName,
+                            lastname : user[0].profile.lastName == undefined ? '' : user[0].profile.lastName,
+                            contactnumber : user[0].profile.phone == undefined ? '' : user[0].profile.phone,
+                            address : user[0].profile.address == undefined ? '' : user[0].profile.address,
+                            zip : user[0].profile.zip == undefined ? '' : user[0].profile.zip,
+                            city : user[0].profile.city == undefined ? '' : user[0].profile.city,
+                            country : user[0].profile.country == undefined ? '' : user[0].profile.country,
+                            orderid : _orderid,
+                            purchasecost : totalprice,
+                            products : _products,
+                            pageTitle : "Order Page",
+                            loginFlag: request.cookies.currentSessionId
+                        };
+                        console.log(' ****Email : ' + order_detail.email);
+                        return response.render( 'pages/order_page.ejs', order_detail);
+                    });
+                 });                    
+            });
+                        
+        }).catch(function(errorMessage){
+            response.redirect("/login");
+        });
+    }
+    else
+    {
+        response.render("pages/homepage", {loginFlag: request.cookies.currentSessionId, pageTitle: "Home"});
+    }
+}
+
+// ------------------------------ Dhanashree --------------------------------------- END
+
 
 // We can now navigate to localhost:3000
 app.listen(3000, function () {

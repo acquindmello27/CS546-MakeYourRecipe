@@ -1,56 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <% include ../partials/head %>   
+    
+    <style>
+
+        .well{
+            margin: auto;   
+            text-align: center;
+            background-color: white;
+            border-left: white;
+            border-right: white;
+            border-bottom-left-radius: 0;
+            border-top-left-radius: 0;
+            border-bottom-right-radius: 0;
+            border-top-right-radius: 0;
+        }
+
+        .panel-heading{
+            text-align: center;
+        }
+
+        #bill_table{
+            border-bottom: solid 2px;
+        }
+    </style>
+    
+    
 </head>
 <body>
-<div class="container">
-    <nav class="navbar navbar-default">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="#">Make My Recipe</a>
-            </div>
-            <ul class="nav navbar-nav navbar-right">
-                <li><a href="#"><strong>Home</strong></a></li>
-                <li><a class="dropdown-toggle" data-toggle="dropdown" href="#"><strong>Cuisine</strong><span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#">Indian</a></li>
-                        <li><a href="#">Chinese</a></li>
-                        <li><a href="#">Mexican</a></li>
-                    </ul>
+<div class="homepage">
+    <header class="header-other">
+        <% include ../partials/header %>
+    </header>
+    <div class="well">
+        <h4>Success - your order is confirmed!</h4>
+        <h4>Order number: <%= orderid %></h4>
+    </div>
 
-                </li>
-                <li><a href="#"><strong>About Us</strong></a></li>
-                <li><a href="#"><strong>Cart</strong></a></li>
-                <li><a href="#"><strong>Logout</strong></a></li>
-            </ul>
+    <br/><br/>
+    <div class="row">
+        <div class="col-sm-11">
+            <p>
+                <span><strong>Shipping Address:</strong></span><br/>
+                <span><%= firstname %> <%= lastname %></span><br/>
+                <span><%= contactnumber %></span><br/>
+                <span><%= address %></span><br/>
+                <span><%= zip %>, <%= city %>, <%= country %></span><br/>
+            </p>
         </div>
-    </nav>
+        <div class="col-sm-1">
+            <span style="font-size:4em;" class="glyphicon glyphicon-cloud-download "></span>
+        </div>
 
-        <h2>Your Order :</h2>
-        <table class="table">
-            <thead>
-            <tr>
-                <th>ORDER ID</th>
-                <th>PRODUCT</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td><%=recipeid%></td>
+    </div>
 
-            </tr>
-            </tbody>
-        </table>
+    <br/><br/>
+    <div class="panel panel-primary">
+        <div class="panel-heading" ><span class="glyphicon glyphicon-question-sign"></span> Following are the purchase details.</div>
+        <div class="panel-body">
+            <table class="table" id="bill_table">
+                <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Price</th>
+                </tr>
+                </thead>
+                <tbody>
+                
+                <% products.forEach(function(product){ %>
+                
+                <tr>
+                    <td><%= product.productname %></td>
+                    <td><%= product.productprice %></td>
+                </tr>
+                
+                <% }); %>
+                    
+                
+                </tbody>
+            </table>
+
+            <div class="row">
+                <div class="col-sm-9">
+
+                </div>
+                <div class="col-sm-3">
+                    <table class="table" border="0">
+                        <tr>
+                            <td><strong>Total</strong></td>
+                            <td><%= purchasecost %></td>
+                        </tr>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
 </div>
-<footer>
-    <% include ../partials/footer %>
-</footer>
+<% include ../partials/scripts %>
 </body>
 </html>

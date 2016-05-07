@@ -30,7 +30,44 @@ MongoClient.connect(fullMongoUrl)
                         return results;
                     })
         };
-
+        // ------------------------- DHANASHREE ----------------------- Start 
+        exports.getRecipes_byIds = function (id_collection) {
+            
+            if(id_collection.length > 0){
+                console.log(' **** retriving recipes.');
+                return db.collection('recipe').find({ _id : { $in : id_collection}  }).toArray().then(function (recipes) {
+                    return recipes;
+                });                
+                
+            }else{
+                return [];
+            } 
+            
+        };
+        
+        exports.createbill_updatecart = function (_cartid, _userid) {
+            var _orderid = Guid.create().toString();
+            var bill_info = {
+                cartid : _cartid,
+                id : _orderid,
+                userid : _userid
+            };
+            
+            return db.collection('billinfo').insertOne(bill_info).then(function (params) {
+                return db.collection('cart').findOne({ _id : _cartid }).then(function (cart) {
+                    return db.collection('cart').update(
+                        { _id : _cartid },
+                        { _id : _cartid , isOrdered : true, recipes : [] },
+                        {upsert: true}
+                        ).then(function (params) {
+                            return _orderid;
+                    });    
+                });    
+            });          
+            
+        }
+        
+        // ------------------------- DHANASHREE ----------------------- End
         exports.totalPrice = function(result){
             var ingredientsArray = result.ingredients;
 

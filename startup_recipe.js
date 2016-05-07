@@ -23,6 +23,26 @@ Beat together egg white and soy sauce in a small bowl and stir into salmon mixtu
 Heat a 12-inch nonstick skillet over moderate heat until hot and lightly brush with oil. Cook patties, carefully turning once, until golden brown and cooked through, 6 to 7 minutes total. \
 Serve each burger topped with 1 1/2 teaspoons pickled ginger.";
 
+var burittoProcedure = "In a large skillet over medium heat, cook the onions until softened. Then add the ground beef and cook until the beef is cooked through. Add the cumin, chili powder, oregano and salt and stir to combine. Pour 2 cans of the Mexican tomato sauce into the meat and simmer over low heat for 5 minutes. Add a little water if the mixture gets too dry. \
+Meanwhile, heat the refried beans in a saucepan over medium-low heat,add the cheese, and stir it in till it's melted. Remove from the heat.\
+Heat the tortillas in the microwave for 1 minute, and then spread a small amount of beans on each tortilla. \
+Add a small amount of the meat. Fold over the ends of the tortilla, and then roll them up. Repeat with the rest of the tortillas. Then place them in a large baking dish, cover with foil and keep warm in the oven.\
+When ready to serve, drizzle the remaining can of tomato sauce over all of the burritos and sprinkle with more grated Cheddar. Return to the oven for a couple of minutes just to melt the cheese.\
+Sprinkle the tops with the cilantro leaves and serve immediately.";
+
+var pancakeProcedure = "In a large bowl, sift together the flour, baking powder, salt and sugar.\
+Make a well in the center and pour in the milk, egg and melted butter; mix until smooth. \
+Heat a lightly oiled griddle or frying pan over medium high heat. Pour or scoop the batter onto the griddle, using approximately 1/4 cup for each pancake. \
+Brown on both sides and serve hot.";
+
+var vegetableFriedRiceProcedure = "In a saucepan bring water to a boil. Stir in rice. Reduce heat, cover and simmer for 20 minutes.\
+Meanwhile, heat peanut oil in a large skillet or wok over medium heat. \
+Add onions, bell pepper, garlic and pepper flakes, to taste. Cook 3 minutes, stirring occasionally. \
+Increase heat to medium-high and stir in cooked rice, green onions and soy sauce. \
+Stir-fry for 1 minute. Add peas and cook 1 minute more. Remove from heat.\
+ Add sesame oil and mix well. Garnish with peanuts, if desired.";
+ 
+
 
 function runSetup() {
     return MongoClient.connect(fullMongoUrl)
@@ -90,7 +110,28 @@ function runSetup() {
         	ingredients(salmonBurger, "Ginger", "6 ounces", 3.99);
         	ingredients(salmonBurger, "Eggs", "1 dozen", 4.39);
 
-        	listOfRecipes.push(chickenTikka, omlet, salmonBurger);
+             var buritto = newDoc("Buritto", "Buritto is a Mexican and a Tex-Mex dish","buritto.png",20,10,1,"Mexican",burittoProcedure);
+            ingredients(buritto,"Onion","1 piece",0.70);
+            ingredients(buritto,"Beans"," 0.5 lbs", 2);
+            ingredients(buritto,"Tortilla","1 piece",0.60);
+            ingredients(buritto,"Mozerella Cheese","1 part",1);
+            ingredients(buritto,"Mayonese","1.2 oz",1.50);
+            
+            var pancake = newDoc("Pancake","Pancake is an American Speciality","pancakes.jpg",5,15,2,"American",pancakeProcedure);
+            ingredients(pancake,"All purpose flour","1 cup",0.50);
+            ingredients(pancake,"Baking Powder","3 teaspoons",0.75);
+            ingredients(pancake,"Egg","1 piece",0.30);
+            ingredients(pancake,"Butter","3 tablespoons",0.30);
+            ingredients(pancake,"Sugar","1 tablespoon",0.10);
+            
+            var vegetableFriedRice = newDoc("Vegetable Fried Rice", "Vegetable Fried Rice is a Indian dish","rice1.JPG",15,40,2,"Indian",vegetableFriedRiceProcedure);
+            ingredients(vegetableFriedRice,"Brown Rice","0.5 lbs",2);
+            ingredients(vegetableFriedRice,"Peanut Oil","2 tablespoons",0.60);
+            ingredients(vegetableFriedRice,"Onions","3 pieces",2);
+            ingredients(vegetableFriedRice,"Soy Sauce","3 tablespoons");
+
+
+        	listOfRecipes.push(chickenTikka, omlet, salmonBurger,buritto, pancake, vegetableFriedRice);
 
         	return recipeCollection.insertMany(listOfRecipes).then(function() {
                 return recipeCollection.find().toArray();
